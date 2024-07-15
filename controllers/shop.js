@@ -204,22 +204,24 @@ exports.getInvoice = (req, res, next) => {
 
       pdfDoc.fontSize(26).text("Invoice PDF ", { underline: true });
       pdfDoc.text("-----------------------------");
+
+      let maxProductNameLength = 20; // Adjust based on your longest product name
+      let lineGap = 10; 
       let totalprice = 0;
       order.products.forEach((prod) => {
-        totalprice += prod.quantity * prod.product.price;
-        pdfDoc
-          .fontSize(14)
-          .text(
-            prod.product.title +
-              " - " +
-              prod.quantity +
-              "x" +
-              "$" +
-              prod.product.price
-          );
+        let productNameSpaces = ' '.repeat(maxProductNameLength - prod.product.title.length);
+    
+        // Construct the line with proper alignment
+        let line = prod.product.title + productNameSpaces + " -------- " + prod.quantity + " x $" + prod.product.price;
+    
+        // Add the line to PDF
+        pdfDoc.fontSize(14).text(line, { lineGap: lineGap });
+    });
+      pdfDoc.fontSize(26).text("-----------------------------");
+
+      pdfDoc.fontSize(20).text("Total Price: $" + totalprice, {
+        align: "right", // Example of aligning total price to the right
       });
-      pdfDoc.text("-----------------------------");
-      pdfDoc.fontSize(20).text("Total Price :" + totalprice);
 
       pdfDoc.end();
 
