@@ -1,0 +1,52 @@
+<%- include('../includes/head.ejs') %>
+    <link rel="stylesheet" href="/css/forms.css">
+    <link rel="stylesheet" href="/css/auth.css">
+</head>
+
+<body>
+   <%- include('../includes/navigation.ejs') %>
+
+    <main>
+        <% if (errorMessage) { %>
+            <div class="user-message user-message--error"><%= errorMessage %></div>
+        <% } %>
+        <form class="login-form" action="/login" method="POST">
+            <div class="form-control">
+                <label for="email">E-Mail</label>
+                <input class="<%= validationErrors.find(e => e.param === 'email') ? 'invalid' : '' %>" 
+                        type="email" 
+                        name="email" 
+                        id="email" 
+                        value="<%= oldInput.email %>">
+            </div>
+            <div class="form-control">
+                <label for="password">Password</label>
+                <input class="<%= validationErrors.find(e => e.param === 'password') ? 'invalid' : '' %>" 
+                        type="password" 
+                        name="password" 
+                        id="password" 
+                        value="<%= oldInput.password %>">
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" onclick="myFunction()" >Show Password!!!
+                </label>
+            </div>
+            <br>
+            <script>
+                function myFunction(){
+                var x=document.getElementById("password");
+                if(x.type === "password"){
+                x.type = "text";
+                }else {
+                x.type ="password";}
+            }
+            </script>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <button class="btn" type="submit">Login</button>
+        </form>
+        <div class="centered">
+            <a href="/reset">Reset Password</a>
+        </div>
+    </main>
+<%- include('../includes/end.ejs') %>
