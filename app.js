@@ -84,6 +84,8 @@ app.use((req, res, next) => {
         return next();
       }
       req.user = user;
+      res.locals.user = user;
+      res.locals.email = user.email;  
       next();
     })
     .catch((err) => {
@@ -104,6 +106,8 @@ app.use((error, req, res, next) => {
     pageTitle: "Error!",
     path: "/500",
     isAuthenticated: req.session ? req.session.isLoggedIn : false,
+    user: req.user,
+    
   });
 });
 

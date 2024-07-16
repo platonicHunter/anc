@@ -176,7 +176,7 @@ exports.getOrders = (req, res, next) => {
     });
 };
 
-//Invoice
+//Another Invoice File
 exports.getInvoice = (req, res, next) => {
   const orderId = req.params.orderId;
   Order.findById(orderId)
@@ -185,15 +185,15 @@ exports.getInvoice = (req, res, next) => {
         return next(new Error("No Order Found"));
       }
       if (order.user.userId.toString() !== req.user._id.toString()) {
-        return next(new Error("Unathorized"));
+        return next(new Error("Unauthorized"));
       }
+
       const invoiceName = "invoice-" + orderId + ".pdf";
       const invoicePath = path.join("data", "invoices", invoiceName);
 
-      //pdfKit
-      const pdfDoc = new PDFDocument();
+      const pdfDoc = new PDFDocument({ margin: 50 });
+
       res.setHeader("Content-Type", "application/pdf");
-      //inline(download auto) //attachement(rename file when download)
       res.setHeader(
         "Content-Disposition",
         'inline; filename="' + invoiceName + '"'
@@ -202,28 +202,172 @@ exports.getInvoice = (req, res, next) => {
       pdfDoc.pipe(fs.createWriteStream(invoicePath));
       pdfDoc.pipe(res);
 
-      pdfDoc.fontSize(26).text("Invoice PDF ", { underline: true });
-      pdfDoc.text("-----------------------------");
+      // Header
+      pdfDoc
+        .fontSize(20)
+        .fillColor("black")
+        .text("Company Name", { align: "center" })
+        .moveDown();
+      pdfDoc
+        .fontSize(10)
+        .fillColor("gray")
+        .text("Company Address Line 1", { align: "center" })
+        .text("Company Address Line 2", { align: "center" })
+        .text("Company Address Line 3", { align: "center" })
+        .moveDown();
 
-      let maxProductNameLength = 20; // Adjust based on your longest product name
-      let lineGap = 10; 
-      let totalprice = 0;
+      // Invoice Title
+      pdfDoc
+        .fontSize(26)
+        .fillColor("black")
+        .text("INVOICE", { align: "center", underline: true })
+        .moveDown();
+
+      const today = new Date();
+      const todayDate = `${today.getDate().toString().padStart(2, "0")}-${(
+        today.getMonth() + 1
+      )
+        .toString()
+        .padStart(2, "0")}-${today.getFullYear()}`;
+
+      // Order details
+      pdfDoc
+        .fontSize(14)
+        .fillColor("black")
+        .text(`Order ID: ${orderId}`)
+        .text(`Order Date: ${todayDate}`)
+        //.text(`Customer Name: ${orderId}`)
+        .moveDown();
+
+      // Table headers
+      const tableTop = pdfDoc.y;
+      pdfDoc
+        .fontSize(14)
+        .fillColor("black")
+        .text("Product", 50, tableTop)
+        .text("Quantity", 250, tableTop)
+        .text("Price", 350, tableTop)
+        .text("Total", 475, tableTop);
+
+      // Underline headers
+      pdfDoc
+        .moveTo(50, pdfDoc.y + 15)
+        .lineTo(550, pdfDoc.y + 15)
+        .stroke();
+
+      // Table rows
+      let totalPrice = 0;
       order.products.forEach((prod) => {
-        let productNameSpaces = ' '.repeat(maxProductNameLength - prod.product.title.length);
-    
-        // Construct the line with proper alignment
-        let line = prod.product.title + productNameSpaces + " -------- " + prod.quantity + " x $" + prod.product.price;
-    
-        // Add the line to PDF
-        pdfDoc.fontSize(14).text(line, { lineGap: lineGap });
-    });
-      pdfDoc.fontSize(26).text("-----------------------------");
+        const productTotal = prod.quantity * prod.product.price;
+        totalPrice += productTotal;
+        const y = pdfDoc.y + 20;
+        pdfDoc
+          .fontSize(12)
+          .fillColor("black")
+          .text(prod.product.title, 50, y)
+          .text(prod.quantity, 250, y)
+          .text(`$${prod.product.price.toFixed(2)}`, 350, y)
+          .text(`$${productTotal.toFixed(2)}`, 475, y)
+          .moveDown();
 
-      pdfDoc.fontSize(20).text("Total Price: $" + totalprice, {
-        align: "right", // Example of aligning total price to the right
+        // Underline rows
+        pdfDoc
+          .moveTo(50, pdfDoc.y + 5)
+          .lineTo(550, pdfDoc.y + 5)
+          .stroke();
       });
 
+      //Calculate Delivery Fees
+      const deliveryFee = totalPrice * 0.1;
+      const finalTotal = totalPrice + deliveryFee;
+
+      pdfDoc.moveDown();
+      const totalPriceY = pdfDoc.y + 20;
+      pdfDoc
+        .fontSize(14)
+        .fillColor("black")
+        .text("Total Price:", 350, totalPriceY)
+        .text(`$${totalPrice.toFixed(2)}`, 450, totalPriceY, {
+          align: "center",
+        });
+      pdfDoc.moveDown();
+      const deliveryFeeY = pdfDoc.y + 20;
+      pdfDoc
+        .fontSize(14)
+        .fillColor("black")
+        .text("Delivery Fee (10%):", 350, deliveryFeeY)
+        .text(`$${deliveryFee.toFixed(2)}`, 450, deliveryFeeY, {
+          align: "center",
+        });
+
+      pdfDoc.moveDown();
+      const finalTotalY = pdfDoc.y + 20;
+      pdfDoc
+        .fontSize(14)
+        .fillColor("black")
+        .text("Final Total:", 350, finalTotalY)
+        .text(`$${finalTotal.toFixed(2)}`, 450, finalTotalY, {
+          align: "center",
+        });
+
+      // Footer
+      pdfDoc.moveDown();
+      pdfDoc
+        .fontSize(10)
+        .fillColor("gray")
+        .text("Thank you for your business!", { align: "center" })
+        .moveDown();
+      pdfDoc
+        .fontSize(10)
+        .fillColor("gray")
+        .text("City Website: www.fashion.com", { align: "center" })
+        .text("Email: admin@123.com", { align: "center" })
+        .text("Phone: 09-970989566", { align: "center" })
+        .text("Address: 966A Bayint Naung Rd, Yangon", { align: "center" });
+
       pdfDoc.end();
+      //Invoice
+      // exports.getInvoice = (req, res, next) => {
+      //   const orderId = req.params.orderId;
+      //   Order.findById(orderId)
+      //     .then((order) => {
+      //       if (!order) {
+      //         return next(new Error("No Order Found"));
+      //       }
+      //       if (order.user.userId.toString() !== req.user._id.toString()) {
+      //         return next(new Error("Unathorized"));
+      //       }
+      //       const invoiceName = "invoice-" + orderId + ".pdf";
+      //       const invoicePath = path.join("data", "invoices", invoiceName);
+      //       //pdfKit
+      //       const pdfDoc = new PDFDocument();
+      //       res.setHeader("Content-Type", "application/pdf");
+      //       //inline(download auto) //attachement(rename file when download)
+      //       res.setHeader(
+      //         "Content-Disposition",
+      //         'inline; filename="' + invoiceName + '"'
+      //       );
+      //       pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      //       pdfDoc.pipe(res);
+      //       pdfDoc.fontSize(26).text("INVOICE", { underline: true });
+      //       pdfDoc.text("-----------------------------");
+      //       let totalprice = 0;
+      //       order.products.forEach((prod) => {
+      //         totalprice += prod.quantity * prod.product.price;
+      //         pdfDoc
+      //           .fontSize(14)
+      //           .text(
+      //             prod.product.title +
+      //               " - " +
+      //               prod.quantity +
+      //               "x" +
+      //               "$" +
+      //               prod.product.price
+      //           );
+      //       });
+      //       pdfDoc.text("-----------------------------");
+      //       pdfDoc.fontSize(20).text("Total Price :" + totalprice);
+      //       pdfDoc.end();
 
       // fs.readFile(invoicePath, (err, data) => {
       //   if (err) {
@@ -237,3 +381,5 @@ exports.getInvoice = (req, res, next) => {
     })
     .catch((err) => next(err));
 };
+
+

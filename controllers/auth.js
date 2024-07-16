@@ -61,7 +61,8 @@ exports.postLogin = (req, res, next) => {
         return res.status(422).render("auth/login", {
           path: "/login",
           pageTitle: "Login",
-          errorMessage: "Invalid email or password.",
+          errorMessage:
+            "You Need To SignUp.Your Email doesn't found in Database.",
           oldInput: {
             email: email,
             password: password,
@@ -282,5 +283,77 @@ exports.postNewPassword = (req, res, next) => {
       console.log(err);
       req.flash("errorNP", "Something went wrong, please try again.");
       res.redirect(`/reset/${passwordToken}`);
+    });
+};
+
+//Account Setting
+exports.getAccount = (req, res, next) => {
+  const errorMessage = req.flash("errorSign")[0] || null;
+  res.render("auth/account", {
+    path: "/account",
+    pageTitle: "Account Setting",
+    errorMessage: errorMessage,
+    oldInput: { email: req.user.email },
+    validationErrors: [],
+  });
+};
+exports.postUpdateAccount = (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const confirmPassword = req.body.confirmPassword;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render("auth/account", {
+      path: "/account",
+      pageTitle: "Account Setting",
+      errorMessage: errors.array()[0].msg,
+      oldInput: {
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      },
+      validationErrors: errors.array(),
+    });
+  }
+
+  // If there are no validation errors, proceed to update the user
+  User.findById(req.user._id)
+    .then(user => {
+      if (!user) {
+        return res.status(404).render("auth/account", {
+          path: "/account",
+          pageTitle: "Account Setting",
+          errorMessage: "User not found.",
+          oldInput: {
+            email: email,
+            password: password,
+            confirmPassword: confirmPassword,
+          },
+          validationErrors: [],
+        });
+      }
+
+      user.email = email;
+
+      if (password) {
+        return bcrypt
+          .hash(password, 12)
+          .then(hashedPassword => {
+            user.password = hashedPassword;
+            return user.save();
+          });
+      }
+
+      return user.save();
+    })
+    .then(result => {
+      req.flash("success", "Account updated successfully");
+      res.redirect("/account");
+    })
+    .catch(err => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };

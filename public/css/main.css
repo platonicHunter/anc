@@ -61,7 +61,7 @@ form {
 }
 
 .main-header__item a,
-.main-header__item button {
+.logout-btn {
   font: inherit;
   background: transparent;
   border: none;
@@ -70,11 +70,16 @@ form {
   cursor: pointer;
 }
 
+.logout-btn{
+  padding-bottom: 5px;
+}
+
+
 .main-header__item a:hover,
 .main-header__item a:active,
 .main-header__item a.active,
-.main-header__item button:hover,
-.main-header__item button:active {
+.logout-btn:hover,
+.logout-btn:active {
   color: #ffeb3b;
 }
 

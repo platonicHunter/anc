@@ -13,20 +13,19 @@ router.get("/login", authController.getLogin);
 router.get("/signup", authController.getSignup);
 
 router.post(
-  '/login',
+  "/login",
   [
-    body('email')
+    body("email")
       .isEmail()
-      .withMessage('Please enter a valid email address.')
+      .withMessage("Please enter a valid email address.")
       .normalizeEmail(),
-    body('password', 'Password has to be valid.')
+    body("password", "Password has to be valid.")
       .isLength({ min: 5 })
       .isAlphanumeric()
-      .trim()
+      .trim(),
   ],
   authController.postLogin
 );
-
 
 router.post(
   "/signup",
@@ -44,7 +43,8 @@ router.post(
             return Promise.reject("Email has already Exit");
           }
         });
-      }).normalizeEmail(),
+      })
+      .normalizeEmail(),
     body(
       "password",
       "The password must with only number and text and at least 5 number"
@@ -72,5 +72,20 @@ router.post("/reset", authController.postReset);
 router.get("/reset/:token", authController.getNewPassword);
 
 router.post("/new-password", authController.postNewPassword);
+
+
+//Account
+router.get('/account', authController.getAccount);
+router.post('/account', [
+  check('password')
+    .isLength({ min: 5 })
+    .withMessage('Password must be at least 5 characters long.')
+    .trim(),
+  check('confirmPassword')
+    .custom((value, { req }) => value === req.body.password)
+    .withMessage('Passwords have to match!')
+    .trim()
+], authController.postUpdateAccount);
+
 
 module.exports = router;

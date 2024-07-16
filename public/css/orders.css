@@ -12,7 +12,7 @@
 
 .orders {
   list-style: none;
-  padding: 0 500px;
+  padding: 0 350px;
 }
 
 .order {
@@ -74,12 +74,12 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .order {
-      padding: 15px;
+    padding: 15px;
   }
   .order-header h2 {
-      font-size: 1.3rem;
+    font-size: 1.3rem;
   }
   .product-details h3 {
-      font-size: 1rem;
+    font-size: 1rem;
   }
 }
