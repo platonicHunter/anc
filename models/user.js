@@ -31,15 +31,15 @@ const userSchema = new Schema({
   }
 });
 
-userSchema.methods.addToCart = function(product) {
+userSchema.methods.addToCart = function(product,quantity) {
   const cartProductIndex = this.cart.items.findIndex(cp => {
     return cp.productId.toString() === product._id.toString();
   });
-  let newQuantity = 1;
+  let newQuantity = quantity;
   const updatedCartItems = [...this.cart.items];
 
   if (cartProductIndex >= 0) {
-    newQuantity = this.cart.items[cartProductIndex].quantity + 1;
+    newQuantity = this.cart.items[cartProductIndex].quantity + quantity;
     updatedCartItems[cartProductIndex].quantity = newQuantity;
   } else {
     updatedCartItems.push({

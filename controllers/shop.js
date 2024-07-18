@@ -5,6 +5,7 @@ const Product = require("../models/product");
 const Order = require("../models/order");
 
 const PDFDocument = require("pdfkit");
+const { userInfo } = require("os");
 
 const ITEMS_PER_PAGE = 3;
 
@@ -92,10 +93,10 @@ exports.getCart = (req, res, next) => {
       return next();
     });
 };
-
 exports.postCart = (req, res, next) => {
   const userId = req.user._id;
   const prodId = req.body.productId;
+  const quantity = parseInt(req.body.quantity, 10);
 
   Product.findById(prodId)
     .then((product) => {
@@ -105,7 +106,7 @@ exports.postCart = (req, res, next) => {
       if (userId.toString() === product.userId.toString()) {
         return res.status(400).send("Can't order your own product!!");
       }
-      return req.user.addToCart(product).then((result) => {
+      return req.user.addToCart(product, quantity).then((result) => {
         console.log(result);
         res.redirect("/cart");
       });
@@ -115,6 +116,7 @@ exports.postCart = (req, res, next) => {
       res.status(500).send("An error occurred.");
     });
 };
+
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
@@ -176,44 +178,55 @@ exports.getOrders = (req, res, next) => {
     });
 };
 
-//Another Invoice File
 exports.getInvoice = (req, res, next) => {
   const orderId = req.params.orderId;
+  console.log("OrderId", orderId);
+
   Order.findById(orderId)
     .then((order) => {
       if (!order) {
         return next(new Error("No Order Found"));
       }
+
       if (order.user.userId.toString() !== req.user._id.toString()) {
         return next(new Error("Unauthorized"));
       }
 
+      // Define the invoice file name and path
       const invoiceName = "invoice-" + orderId + ".pdf";
       const invoicePath = path.join("data", "invoices", invoiceName);
 
+      // Create a new PDF document
       const pdfDoc = new PDFDocument({ margin: 50 });
 
+      // Set the response headers for PDF content
       res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        'inline; filename="' + invoiceName + '"'
-      );
+      res.setHeader("Content-Disposition", `inline; filename="${invoiceName}"`);
 
+      // Pipe the PDF to a writable stream and to the response
       pdfDoc.pipe(fs.createWriteStream(invoicePath));
       pdfDoc.pipe(res);
+
+      // Format the date
+      const formatDate = (date) => {
+        const d = new Date(date);
+        const day = d.getDate().toString().padStart(2, "0");
+        const month = (d.getMonth() + 1).toString().padStart(2, "0");
+        const year = d.getFullYear();
+        const hours = d.getHours().toString().padStart(2, "0");
+        const minutes = d.getMinutes().toString().padStart(2, "0");
+        const seconds = d.getSeconds().toString().padStart(2, "0");
+        return `${day}-${month}-${year} /${hours}:${minutes}:${seconds}`;
+      };
+
+      // Get the formatted createdAt date
+      const createdAtDate = formatDate(order.createdAt);
 
       // Header
       pdfDoc
         .fontSize(20)
         .fillColor("black")
         .text("Company Name", { align: "center" })
-        .moveDown();
-      pdfDoc
-        .fontSize(10)
-        .fillColor("gray")
-        .text("Company Address Line 1", { align: "center" })
-        .text("Company Address Line 2", { align: "center" })
-        .text("Company Address Line 3", { align: "center" })
         .moveDown();
 
       // Invoice Title
@@ -223,20 +236,13 @@ exports.getInvoice = (req, res, next) => {
         .text("INVOICE", { align: "center", underline: true })
         .moveDown();
 
-      const today = new Date();
-      const todayDate = `${today.getDate().toString().padStart(2, "0")}-${(
-        today.getMonth() + 1
-      )
-        .toString()
-        .padStart(2, "0")}-${today.getFullYear()}`;
-
       // Order details
       pdfDoc
         .fontSize(14)
         .fillColor("black")
         .text(`Order ID: ${orderId}`)
-        .text(`Order Date: ${todayDate}`)
-        //.text(`Customer Name: ${orderId}`)
+        .text(`Order Date: ${createdAtDate}`)
+        .text(`User Email: ${order.user.email}`)
         .moveDown();
 
       // Table headers
@@ -277,7 +283,7 @@ exports.getInvoice = (req, res, next) => {
           .stroke();
       });
 
-      //Calculate Delivery Fees
+      // Calculate Delivery Fees
       const deliveryFee = totalPrice * 0.1;
       const finalTotal = totalPrice + deliveryFee;
 
@@ -325,61 +331,8 @@ exports.getInvoice = (req, res, next) => {
         .text("Phone: 09-970989566", { align: "center" })
         .text("Address: 966A Bayint Naung Rd, Yangon", { align: "center" });
 
+      // Finalize the PDF
       pdfDoc.end();
-      //Invoice
-      // exports.getInvoice = (req, res, next) => {
-      //   const orderId = req.params.orderId;
-      //   Order.findById(orderId)
-      //     .then((order) => {
-      //       if (!order) {
-      //         return next(new Error("No Order Found"));
-      //       }
-      //       if (order.user.userId.toString() !== req.user._id.toString()) {
-      //         return next(new Error("Unathorized"));
-      //       }
-      //       const invoiceName = "invoice-" + orderId + ".pdf";
-      //       const invoicePath = path.join("data", "invoices", invoiceName);
-      //       //pdfKit
-      //       const pdfDoc = new PDFDocument();
-      //       res.setHeader("Content-Type", "application/pdf");
-      //       //inline(download auto) //attachement(rename file when download)
-      //       res.setHeader(
-      //         "Content-Disposition",
-      //         'inline; filename="' + invoiceName + '"'
-      //       );
-      //       pdfDoc.pipe(fs.createWriteStream(invoicePath));
-      //       pdfDoc.pipe(res);
-      //       pdfDoc.fontSize(26).text("INVOICE", { underline: true });
-      //       pdfDoc.text("-----------------------------");
-      //       let totalprice = 0;
-      //       order.products.forEach((prod) => {
-      //         totalprice += prod.quantity * prod.product.price;
-      //         pdfDoc
-      //           .fontSize(14)
-      //           .text(
-      //             prod.product.title +
-      //               " - " +
-      //               prod.quantity +
-      //               "x" +
-      //               "$" +
-      //               prod.product.price
-      //           );
-      //       });
-      //       pdfDoc.text("-----------------------------");
-      //       pdfDoc.fontSize(20).text("Total Price :" + totalprice);
-      //       pdfDoc.end();
-
-      // fs.readFile(invoicePath, (err, data) => {
-      //   if (err) {
-      //     return next(err);
-      //   }
-      //   res.setHeader("Content-Type", "application/pdf");
-      //   //inline(download auto) //attachement(rename file when download)
-      //   res.setHeader('Content-Disposition', `inline; filename="${invoiceName}"`);
-      //   res.send(data);
-      //});
     })
     .catch((err) => next(err));
 };
-
-

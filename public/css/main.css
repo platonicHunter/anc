@@ -70,10 +70,13 @@ form {
   cursor: pointer;
 }
 
-.logout-btn{
+.logout-btn {
   padding-bottom: 5px;
 }
 
+.quantity-selector {
+  margin-top: 10px;
+}
 
 .main-header__item a:hover,
 .main-header__item a:active,
@@ -201,11 +204,28 @@ form {
 .card__actions {
   padding: 1rem;
   text-align: center;
+  display: flex;
+  flex-direction: column; /* Arrange items in a column */
+  align-items: center; /* Center items horizontally */
+  gap: 1rem; /* Space between items */
 }
 
-.card__actions button,
-.card__actions a {
-  margin: 0 0.25rem;
+.quantity-selector {
+  text-align: center;
+  padding: 0.5rem; /* Adjust padding for a larger form area */
+  margin-bottom: 1rem; /* Space between quantity input and buttons */
+  flex-direction: column; /* Stack quantity input and button vertically */
+  gap: 0.5rem; /* Space between input and button */
+  max-width: 100%; /* Ensure the form doesn't exceed the parent container */
+  box-sizing: border-box; /* Include padding and border in the element’s total width and height */
+}
+
+.form-div {
+  width: 100%;
+}
+
+.quantity-input {
+  margin-right: 1rem;
 }
 
 .btn {

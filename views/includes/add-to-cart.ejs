@@ -1,5 +1,38 @@
+<!-- <form action="/cart" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <button class="btn" type="submit">Add to Cart</button>
+  <input type="hidden" name="productId" value="<%= product._id %>" />
+</form> -->
 <form action="/cart" method="post">
-    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+  <input type="hidden" name="productId" value="<%= product._id %>" />
+  <div class="quantity-selector">
+    <input
+      type="number"
+      name="quantity"
+      value="1"
+      min="1"
+      class="quantity-input"
+      style="width: 72px"
+    />
     <button class="btn" type="submit">Add to Cart</button>
-    <input type="hidden" name="productId" value="<%= product._id %>">
+  </div>
 </form>
+
+<script>
+  document
+    .querySelector(".btn-decrement")
+    .addEventListener("click", function () {
+      const quantityInput = document.querySelector(".quantity-input");
+      if (quantityInput.value > 1) {
+        quantityInput.value--;
+      }
+    });
+
+  document
+    .querySelector(".btn-increment")
+    .addEventListener("click", function () {
+      const quantityInput = document.querySelector(".quantity-input");
+      quantityInput.value++;
+    });
+</script>
