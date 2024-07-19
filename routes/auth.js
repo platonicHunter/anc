@@ -45,12 +45,17 @@ router.post(
         });
       })
       .normalizeEmail(),
-    body(
-      "password",
-      "The password must with only number and text and at least 5 number"
-    )
-      .isLength({ min: 5 })
-      .isAlphanumeric()
+    body("password")
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 character long")
+      .matches(/[A-Z]/)
+      .withMessage("Password must contain at least one Capital Letter")
+      .matches(/[a-z]/)
+      .withMessage("Password must contain at least one Small Letter")
+      .matches(/[0-9]/)
+      .withMessage("Password must contain at least one Number")
+      .matches(/[\W_]/)
+      .withMessage("Password must contain at least one Special Character")
       .trim(),
     body("confirmPassword").custom((value, { req }) => {
       if (value !== req.body.password) {
@@ -73,20 +78,21 @@ router.get("/reset/:token", authController.getNewPassword);
 
 router.post("/new-password", authController.postNewPassword);
 
-
 //Account
-router.get('/account', authController.getAccount);
-router.post('/account', [
-  check('password')
-    .isLength({ min: 5 })
-    .withMessage('Password must be at least 5 characters long.')
-    .trim(),
-  check('confirmPassword')
-    .custom((value, { req }) => value === req.body.password)
-    .withMessage('Passwords have to match!')
-    .trim()
-], authController.postUpdateAccount);
-
-
+router.get("/account", authController.getAccount);
+router.post(
+  "/account",
+  [
+    check("password")
+      .isLength({ min: 5 })
+      .withMessage("Password must be at least 5 characters long.")
+      .trim(),
+    check("confirmPassword")
+      .custom((value, { req }) => value === req.body.password)
+      .withMessage("Passwords have to match!")
+      .trim(),
+  ],
+  authController.postUpdateAccount
+);
 
 module.exports = router;

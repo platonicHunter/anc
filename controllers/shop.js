@@ -81,10 +81,17 @@ exports.getCart = (req, res, next) => {
     .execPopulate()
     .then((user) => {
       const products = user.cart.items;
+
+      let totalPrice = 0;
+
+      products.forEach((p) => {
+        totalPrice += p.productId.price * p.quantity;
+      });
       res.render("shop/cart", {
         path: "/cart",
         pageTitle: "Your Cart",
         products: products,
+        totalPrice: totalPrice,
       });
     })
     .catch((err) => {
@@ -116,7 +123,6 @@ exports.postCart = (req, res, next) => {
       res.status(500).send("An error occurred.");
     });
 };
-
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
