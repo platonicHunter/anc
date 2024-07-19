@@ -69,7 +69,7 @@ app.use(csrfProtection);
 app.use(flash());
 
 app.use((req, res, next) => {
-  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.isAuthenticated = req.session.isLoggedIn ;
   res.locals.csrfToken = req.csrfToken();
   next();
 });
@@ -83,7 +83,7 @@ app.use((req, res, next) => {
       if (!user) {
         return next();
       }
-      req.user = user;
+      req.user = user || null;
       res.locals.user = user;
       res.locals.email = user.email;  
       next();

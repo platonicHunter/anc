@@ -15,6 +15,11 @@ const userSchema = new Schema({
     type:String,
     default: 'User'
   },
+  status:{
+    type:String,
+    enum: ['active', 'inactive', 'pending'],
+    default:'pending'
+  },
   resetToken:String,
   resetTokenExpiration: Date,
   cart: {

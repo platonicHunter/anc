@@ -1,0 +1,80 @@
+<%- include('../includes/head.ejs') %>
+    <link rel="stylesheet" href="/css/product.css">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css"> 
+
+    <!-- DataTables Responsive CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css">
+
+</head>
+
+<body>
+    <%- include('../includes/navigation.ejs') %>
+
+    <main>
+        <div class="container mt-5">
+            <h1 class="mb-4">User List</h1>
+            <div class="table-container">
+                <table id="userTable" class="display responsive">
+                    <thead class="table table-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Password</th>
+                            <th scope="col">Role</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% users.forEach((user, index) => { %>
+                            <tr>
+                                <td scope="row"><%= index + 1 %></td>
+                                <td><%= user.email %></td>
+                                <td><%= user.password %></td>
+                                <td><%= user.role %></td>
+                                <td>
+                                    <form action="/admin/updateStatus/<%= user._id %>" method="POST">
+                                        <select name="status" class="status-select">
+                                            <option value="active" <%= user.status === 'active' ? 'selected' : '' %>>Active</option>
+                                            <option value="inactive" <%= user.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                                            <option value="pending" <%= user.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                        </select>
+                                        <button type="submit" class="button">Update</button>
+                                    </form>
+                                </td>
+                                <td> 
+                                    <form action="/admin/deleteUser/<%= user._id %>" method="POST">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <button type="submit">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+
+    <!-- DataTables Responsive JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            $('#userTable').DataTable({
+                responsive: true
+            });
+        });
+    </script>
+
+    <%- include('../includes/end.ejs') %>
+</body>
+</html>

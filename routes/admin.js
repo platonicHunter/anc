@@ -51,4 +51,12 @@ router.post(
 
 router.post("/delete-product", isAuth, adminController.postDeleteProduct);
 
+
+//userAccount on Auth
+
+router.get('/userAccount', adminController.getUserAccount);
+router.post('/userAccount/updateStatus/:id', adminController.postUpdateStatus);
+router.post('/userAccount/deleteUser/:id',isAuth, adminController.postDeleteProduct);
+
+
 module.exports = router;

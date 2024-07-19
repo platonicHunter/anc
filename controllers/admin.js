@@ -1,6 +1,7 @@
 const { ValidationError } = require("sequelize");
 const fileHelper = require("../util/file");
 const Product = require("../models/product");
+const User = require("../models/user");
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 
@@ -210,3 +211,71 @@ exports.postDeleteProduct = (req, res, next) => {
       return next();
     });
 };
+
+//get User Account
+exports.getUserAccount = (req, res,next) => {
+  User.find()
+  .then((users) => {
+      const safeUsers = users.map(user => ({
+          _id: user._id,
+          email: user.email,
+          password:user.password,
+          role: user.role,
+          status: user.status
+      }));
+
+      res.render("admin/userAccount", {
+          users: safeUsers,
+          pageTitle: "User Account",
+          path: "/admin/userAccount",
+      });
+  })
+    .catch((err) => {
+      console.error("Error fetching users:", err);
+      res.status(500).send("Internal Server Error");
+    });
+};
+
+
+exports.postUpdateStatus= (req, res,next) => {
+  const userId = req.params.id;
+  const newStatus = req.body.status;
+
+  // Validate input
+  if (!['active', 'inactive', 'pending'].includes(newStatus)) {
+    return res.status(400).json({ message: 'Invalid status' });
+  }
+
+  // Find user by ID and update status
+  User.findByIdAndUpdate(userId, { status: newStatus }, { new: true })
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      // Redirect back to the user list
+      res.redirect('/admin/userAccount');
+    })
+    .catch(err => {
+      console.error("Error updating status:", err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
+};
+
+// Route to delete user (if needed)
+exports.postDeleteUser= (req, res,next) => {
+  const userId = req.params.id;
+
+  User.findByIdAndDelete(userId)
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      // Redirect back to the user list
+      res.redirect('/admin/userAccount');
+    })
+    .catch(err => {
+      console.error("Error deleting user:", err);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
+};
+
