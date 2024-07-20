@@ -84,8 +84,9 @@ app.use((req, res, next) => {
         return next();
       }
       req.user = user || null;
-      res.locals.user = user;
-      res.locals.email = user.email;  
+      res.locals.user = user ;
+      res.locals.userId = user._id.toString() ;
+      res.locals.email = user.email ;  
       next();
     })
     .catch((err) => {

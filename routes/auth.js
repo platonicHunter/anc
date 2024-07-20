@@ -19,10 +19,10 @@ router.post(
       .isEmail()
       .withMessage("Please enter a valid email address.")
       .normalizeEmail(),
-    body("password", "Password has to be valid.")
-      .isLength({ min: 5 })
-      .isAlphanumeric()
-      .trim(),
+    body("password")
+    .isLength({ min: 5 })
+    .withMessage("Password must contain at least 8 character long")
+    .trim(),
   ],
   authController.postLogin
 );
@@ -84,9 +84,17 @@ router.post(
   "/account",
   [
     check("password")
-      .isLength({ min: 5 })
-      .withMessage("Password must be at least 5 characters long.")
-      .trim(),
+    .isLength({ min: 8 })
+    .withMessage("Password must contain at least 8 character long")
+    .matches(/[A-Z]/)
+    .withMessage("Password must contain at least one Capital Letter")
+    .matches(/[a-z]/)
+    .withMessage("Password must contain at least one Small Letter")
+    .matches(/[0-9]/)
+    .withMessage("Password must contain at least one Number")
+    .matches(/[\W_]/)
+    .withMessage("Password must contain at least one Special Character")
+    .trim(),
     check("confirmPassword")
       .custom((value, { req }) => value === req.body.password)
       .withMessage("Passwords have to match!")

@@ -1,5 +1,5 @@
 <%- include('../includes/head.ejs') %>
-    <link rel="stylesheet" href="/css/product.css">
+    <link rel="stylesheet" href="/css/userAccount.css">
     
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css"> 
@@ -41,13 +41,21 @@
                                             <option value="inactive" <%= user.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
                                             <option value="pending" <%= user.status === 'pending' ? 'selected' : '' %>>Pending</option>
                                         </select>
-                                        <button type="submit" class="button">Update</button>
+                                        <% if (user._id.toString() !== userId) { %>
+                                        <button type="submit" class="update-btn" >Update</button>
+                                        <% }else { %>
+                                            <span class="no-action">N/A</span>
+                                         <% } %>
                                     </form>
                                 </td>
                                 <td> 
                                     <form action="/admin/deleteUser/<%= user._id %>" method="POST">
                                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                        <button type="submit">Delete</button>
+                                        <% if (user._id.toString() !== userId) { %>
+                                        <button type="submit" class="delete-btn">Delete</button>
+                                        <% }else { %>
+                                            <span class="no-action">N/A</span>
+                                         <% } %>
                                     </form>
                                 </td>
                             </tr>
