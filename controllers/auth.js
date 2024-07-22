@@ -61,8 +61,7 @@ exports.postLogin = (req, res, next) => {
         return res.status(422).render("auth/login", {
           path: "/login",
           pageTitle: "Login",
-          errorMessage:
-            "You Need To SignUp.Your Email doesn't found in Database.",
+          errorMessage: "Email not found in the database.",
           oldInput: {
             email: email,
             password: password,
@@ -70,6 +69,25 @@ exports.postLogin = (req, res, next) => {
           validationErrors: [],
         });
       }
+
+      if (user.status === 'unactive') {
+        req.flash('error', 'Your account is Inactive. Please contact  to admin.');
+        return res.redirect('/login');
+      }
+
+      if (user.status === 'pending') {
+        return res.status(422).render("auth/login", {
+          path: "/login",
+          pageTitle: "Login",
+          errorMessage: "Your account is Pending. Please contact to admin.",
+          oldInput: {
+            email: email,
+            password: password,
+          },
+          validationErrors: [],
+        });
+      }
+
       bcrypt
         .compare(password, user.password)
         .then((doMatch) => {
@@ -77,7 +95,9 @@ exports.postLogin = (req, res, next) => {
             req.session.isLoggedIn = true;
             req.session.user = user;
             return req.session.save((err) => {
-              console.log(err);
+              if (err) {
+                console.log(err);
+              }
               res.redirect("/");
             });
           }
@@ -100,10 +120,9 @@ exports.postLogin = (req, res, next) => {
     .catch((err) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next();
+      return next(error);
     });
 };
-
 exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
