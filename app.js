@@ -8,6 +8,7 @@ const csrf = require("csurf");
 const flash = require("connect-flash");
 const multer = require("multer");
 const { v4: uuidv4 } = require("uuid");
+const methodOverride = require('method-override'); //for table upload
 
 const errorController = require("./controllers/error");
 const User = require("./models/user");
@@ -56,6 +57,7 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "public")));
 app.use("/images", express.static(path.join(__dirname, "images")));
+app.use(methodOverride('_method'));//for table CRUD
 
 app.use(
   session({

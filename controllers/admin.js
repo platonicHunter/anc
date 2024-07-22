@@ -211,71 +211,78 @@ exports.postDeleteProduct = (req, res, next) => {
       return next();
     });
 };
+// controllers/adminController.js
 
-//get User Account
-exports.getUserAccount = (req, res,next) => {
+exports.getUserAccount = (req, res, next) => {
+  const errorMessage = req.flash("error")[0] || null;
+  const successMessage = req.flash("success")[0] || null;
+  
   User.find()
-  .then((users) => {
+    .then(users => {
       const safeUsers = users.map(user => ({
-          _id: user._id,
-          email: user.email,
-          password:user.password,
-          role: user.role,
-          status: user.status
+        _id: user._id,
+        email: user.email,
+        password: user.password,
+        role: user.role,
+        status: user.status
       }));
 
       res.render("admin/userAccount", {
-          users: safeUsers,
-          pageTitle: "User Account",
-          path: "/admin/userAccount",
+        users: safeUsers,
+        pageTitle: "User Account",
+        path: "/admin/userAccount",
+        errorMessage: errorMessage,
+        successMessage: successMessage
       });
-  })
-    .catch((err) => {
+    })
+    .catch(err => {
       console.error("Error fetching users:", err);
       res.status(500).send("Internal Server Error");
     });
 };
 
-
-exports.postUpdateStatus= (req, res,next) => {
+exports.postUpdateStatus = (req, res, next) => {
   const userId = req.params.id;
   const newStatus = req.body.status;
 
-  // Validate input
+  console.log(`User ID: ${userId}, New Status: ${newStatus}`);
   if (!['active', 'inactive', 'pending'].includes(newStatus)) {
-    return res.status(400).json({ message: 'Invalid status' });
+    req.flash('error', 'Invalid status');
+    return res.redirect('/admin/userAccount');
   }
 
-  // Find user by ID and update status
   User.findByIdAndUpdate(userId, { status: newStatus }, { new: true })
     .then(user => {
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        req.flash('error', 'User not found');
+        return res.redirect('/admin/userAccount');
       }
-      // Redirect back to the user list
+      req.flash('success', 'User status updated successfully');
       res.redirect('/admin/userAccount');
     })
     .catch(err => {
       console.error("Error updating status:", err);
-      res.status(500).json({ message: 'Internal Server Error' });
+      req.flash('error', 'Internal Server Error');
+      res.redirect('/admin/userAccount');
     });
 };
 
-// Route to delete user (if needed)
-exports.postDeleteUser= (req, res,next) => {
+exports.postDeleteUser = (req, res, next) => {
   const userId = req.params.id;
 
   User.findByIdAndDelete(userId)
     .then(user => {
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        req.flash('error', 'User not found');
+        return res.redirect('/admin/userAccount');
       }
-      // Redirect back to the user list
+      req.flash('success', 'User deleted successfully');
       res.redirect('/admin/userAccount');
     })
     .catch(err => {
       console.error("Error deleting user:", err);
-      res.status(500).json({ message: 'Internal Server Error' });
+      req.flash('error', 'Internal Server Error');
+      res.redirect('/admin/userAccount');
     });
 };
 

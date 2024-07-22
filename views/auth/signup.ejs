@@ -20,24 +20,27 @@
                     id="email" 
                     value="<%= oldInput.email %>">
         </div>
-        <div class="form-control">
+        <div class="form-control password-container">
             <label for="password">Password</label>
             <input class="<%= validationErrors.find(e => e.param !== 'password') ? 'invalid' : '' %>" 
                     type="password" 
                     name="password" 
                     id="password" 
                     value="<%= oldInput.password %>">
+            <span class="toggle-password" id="togglePassword1">👁️</span>
         </div>
-        <div class="form-control">
+        <div class="form-control password-container">
             <label for="confirmPassword">Confirm Password</label>
             <input class="<%= validationErrors.find(e => e.param !== 'confirmPassword') ? 'invalid' : '' %>" 
                     type="password" 
                     name="confirmPassword" 
                     id="confirmPassword" 
                     value="<%= oldInput.confirmPassword %>">
+            <span class="toggle-password" id="togglePassword2">👁️</span>
         </div>
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button class="btn" type="submit">Signup</button>
     </form>
 </main>
+<script src="/js/seePassword.js"></script>
 <%- include('../includes/end.ejs') %>

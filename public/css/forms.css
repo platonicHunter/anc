@@ -28,3 +28,19 @@
   color: red;
 }
 
+
+.password-container {
+  position: relative;
+}
+
+.password-container input {
+  padding-right: 30px; /* Adjust based on the size of the toggle icon */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px; /* Adjust based on your design */
+  top: 70%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}

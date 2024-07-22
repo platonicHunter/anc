@@ -44,6 +44,7 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+  const errorMessage = req.flash("error")[0] || null;
   const page = +req.query.page || 1;
   let totalItems;
 
@@ -66,6 +67,7 @@ exports.getIndex = (req, res, next) => {
         nextPage: page + 1,
         previousPage: page - 1,
         lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
+        errorMessage: errorMessage
       });
     })
     .catch((err) => {
@@ -105,13 +107,18 @@ exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
   const quantity = parseInt(req.body.quantity, 10);
 
+  if(quantity === null || undefined){
+    req.flash('error', `Please Add Quantity!!`);
+  }
+
   Product.findById(prodId)
     .then((product) => {
       if (!product) {
         return res.status(404).send("Product not found.");
       }
       if (userId.toString() === product.userId.toString()) {
-        return res.status(400).send("Can't order your own product!!");
+        req.flash('error', `Can't order your own product!!`);
+        return res.redirect('/')
       }
       return req.user.addToCart(product, quantity).then((result) => {
         console.log(result);
@@ -120,7 +127,8 @@ exports.postCart = (req, res, next) => {
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("An error occurred.");
+      req.flash('error', `Please Add Quantity!!`);
+      return res.redirect('/')
     });
 };
 

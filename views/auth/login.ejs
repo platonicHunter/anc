@@ -19,29 +19,16 @@
                         id="email" 
                         value="<%= oldInput.email %>">
             </div>
-            <div class="form-control">
+            <div class="form-control password-container">
                 <label for="password">Password</label>
                 <input class="<%= validationErrors.find(e => e.param === 'password') ? 'invalid' : '' %>" 
                         type="password" 
                         name="password" 
                         id="password" 
                         value="<%= oldInput.password %>">
-            </div>
-            <div>
-                <label>
-                    <input type="checkbox" onclick="myFunction()" >Show Password!!!
-                </label>
+                <span class="toggle-password" id="togglePassword1">👁️</span>
             </div>
             <br>
-            <script>
-                function myFunction(){
-                var x=document.getElementById("password");
-                if(x.type === "password"){
-                x.type = "text";
-                }else {
-                x.type ="password";}
-            }
-            </script>
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <button class="btn" type="submit">Login</button>
         </form>
@@ -49,4 +36,5 @@
             <a href="/reset">Reset Password</a>
         </div>
     </main>
+    <script src="/js/seePassword.js"></script>
 <%- include('../includes/end.ejs') %>

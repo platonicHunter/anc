@@ -20,9 +20,9 @@ router.post(
       .withMessage("Please enter a valid email address.")
       .normalizeEmail(),
     body("password")
-    .isLength({ min: 5 })
-    .withMessage("Password must contain at least 8 character long")
-    .trim(),
+      .isLength({ min: 5 })
+      .withMessage("Password must contain at least 8 character long")
+      .trim(),
   ],
   authController.postLogin
 );
@@ -59,7 +59,7 @@ router.post(
       .trim(),
     body("confirmPassword").custom((value, { req }) => {
       if (value !== req.body.password) {
-        throw new Error("Password must Match!");
+        throw new Error("Password doesn't Match!");
       }
       return true;
     }),
@@ -76,7 +76,30 @@ router.post("/reset", authController.postReset);
 //new password
 router.get("/reset/:token", authController.getNewPassword);
 
-router.post("/new-password", authController.postNewPassword);
+router.post(
+  "/new-password",
+  [
+    body("password")
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 character long")
+      .matches(/[A-Z]/)
+      .withMessage("Password must contain at least one Capital Letter")
+      .matches(/[a-z]/)
+      .withMessage("Password must contain at least one Small Letter")
+      .matches(/[0-9]/)
+      .withMessage("Password must contain at least one Number")
+      .matches(/[\W_]/)
+      .withMessage("Password must contain at least one Special Character")
+      .trim(),
+    body("confirmPassword").custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Password doesn't Match!");
+      }
+      return true;
+    }),
+  ],
+  authController.postNewPassword
+);
 
 //Account
 router.get("/account", authController.getAccount);
@@ -84,17 +107,17 @@ router.post(
   "/account",
   [
     check("password")
-    .isLength({ min: 8 })
-    .withMessage("Password must contain at least 8 character long")
-    .matches(/[A-Z]/)
-    .withMessage("Password must contain at least one Capital Letter")
-    .matches(/[a-z]/)
-    .withMessage("Password must contain at least one Small Letter")
-    .matches(/[0-9]/)
-    .withMessage("Password must contain at least one Number")
-    .matches(/[\W_]/)
-    .withMessage("Password must contain at least one Special Character")
-    .trim(),
+      .isLength({ min: 8 })
+      .withMessage("Password must contain at least 8 character long")
+      .matches(/[A-Z]/)
+      .withMessage("Password must contain at least one Capital Letter")
+      .matches(/[a-z]/)
+      .withMessage("Password must contain at least one Small Letter")
+      .matches(/[0-9]/)
+      .withMessage("Password must contain at least one Number")
+      .matches(/[\W_]/)
+      .withMessage("Password must contain at least one Special Character")
+      .trim(),
     check("confirmPassword")
       .custom((value, { req }) => value === req.body.password)
       .withMessage("Passwords have to match!")
