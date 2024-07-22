@@ -58,5 +58,10 @@ router.get('/userAccount', adminController.getUserAccount);
 router.post('/updateStatus/:id',isAuth, adminController.postUpdateStatus);
 router.post('/deleteUser/:id',isAuth, adminController.postDeleteUser);
 
+//Orders
+
+
+router.get("/order", adminController.getOrder);
+router.post('/deleteOrder/:id',isAuth, adminController.postDeleteOrder);
 
 module.exports = router;

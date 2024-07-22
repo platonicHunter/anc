@@ -16,15 +16,19 @@
                 </li>
                 <% } else if(user.role === 'Admin') { %>
                 <li class="main-header__item">
-                    <a class="<%= path === '/admin/add-product' ? 'active' : '' %>" href="/admin/add-product">Add Product
+                    <a class="<%= path === '/admin/add-product' ? 'active' : '' %>" href="/admin/add-product">Create Product
                     </a>
                 </li>
                 <li class="main-header__item">
-                    <a class="<%= path === '/admin/products' ? 'active' : '' %>" href="/admin/products">Admin Products
+                    <a class="<%= path === '/admin/products' ? 'active' : '' %>" href="/admin/products">Manage Products
                     </a>
                 </li>
                 <li class="main-header__item">
-                    <a class="<%= path === '/admin/userAccount' ? 'active' : '' %>" href="/admin/userAccount">User Accounts
+                    <a class="<%= path === '/admin/userAccount' ? 'active' : '' %>" href="/admin/userAccount">Users
+                    </a>
+                </li>
+                <li class="main-header__item">
+                    <a class="<%= path === '/admin/order' ? 'active' : '' %>" href="/admin/order">Orders
                     </a>
                 </li>
                 <% }  else { }%>
@@ -71,11 +75,19 @@
             </li>
             <% } else { %>
             <li class="mobile-nav__item">
-                <a class="<%= path === '/admin/add-product' ? 'active' : '' %>" href="/admin/add-product">Add Product
+                <a class="<%= path === '/admin/add-product' ? 'active' : '' %>" href="/admin/add-product">Create Product
                 </a>
             </li>
             <li class="mobile-nav__item">
-                <a class="<%= path === '/admin/products' ? 'active' : '' %>" href="/admin/products">Admin Products
+                <a class="<%= path === '/admin/products' ? 'active' : '' %>" href="/admin/products">Manage Products
+                </a>
+            </li>
+            <li class="main-header__item">
+                <a class="<%= path === '/admin/userAccount' ? 'active' : '' %>" href="/admin/userAccount">Users
+                </a>
+            </li>
+            <li>
+                <a class="<%= path === '/admin/order' ? 'active' : '' %>" href="/admin/order">Orders
                 </a>
             </li>
            

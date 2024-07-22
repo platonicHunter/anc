@@ -1,0 +1,81 @@
+<%- include('../includes/head.ejs') %>
+<link rel="stylesheet" href="/css/userAccount.css">
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css"> 
+<!-- DataTables Responsive CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css">
+</head>
+
+<body>
+<%- include('../includes/navigation.ejs') %>
+
+<main>
+    <% if (successMessage) { %>
+        <div class="user-message user-message--success"><%= successMessage %></div>
+    <% } %>
+    <% if (errorMessage) { %>
+        <div class="user-message user-message--error"><%= errorMessage %></div>
+    <% } %>
+    
+    <div class="container mt-5">
+        <h1 class="mb-4">Order Lists</h1>
+        <div class="table-container">
+            <table id="userTable" class="display responsive">
+                <thead class="table table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">User-Email</th>
+                        <th scope="col">Products</th>
+                        <th scope="col">Total Price</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% orders.forEach((order, index) => { %>
+                        <tr>
+                            <td scope="row"><%= index + 1 %></td>
+                            <td><%= order.user.email %></td>
+                            <td>
+                                <% 
+                                    let productsStr = order.products.map(prod => 
+                                        `${prod.product.title}(quantity: ${prod.quantity})`
+                                    ).join(' | ');
+                                %>
+                                <%= productsStr %>
+                            </td>
+                            <td>$ <%= order.totalPrice %></td>
+                            <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                            <td> 
+                                <form action="/admin/deleteOrder/<%= order._id %>" method="POST">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="_method" value="DELETE">
+                                    <button type="submit" class="delete-btn">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- DataTables JS -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<!-- DataTables Responsive JS -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#userTable').DataTable({
+            responsive: true
+        });
+    });
+</script>
+
+<%- include('../includes/end.ejs') %>
+</body>
+</html>

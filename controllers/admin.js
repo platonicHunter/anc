@@ -2,6 +2,7 @@ const { ValidationError } = require("sequelize");
 const fileHelper = require("../util/file");
 const Product = require("../models/product");
 const User = require("../models/user");
+const Order = require("../models/order");
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 
@@ -286,3 +287,53 @@ exports.postDeleteUser = (req, res, next) => {
     });
 };
 
+exports.getOrder = (req, res, next) => {
+  const errorMessage = req.flash("errorOrder")[0] || null;
+  const successMessage = req.flash("successOrder")[0] || null;
+
+  Order.find()
+    .then(orders => {
+      // Calculate total price for each order
+      orders = orders.map(order => {
+        let totalPrice = 0;
+        order.products.forEach(prod => {
+          totalPrice += prod.quantity * prod.product.price;
+        });
+        return {
+          ...order._doc,
+          totalPrice
+        };
+      });
+
+      res.render("admin/order", {
+        orders: orders, // Make sure 'users' matches what you're using in the EJS template
+        pageTitle: "User Order",
+        path: "/admin/order",
+        errorMessage: errorMessage,
+        successMessage: successMessage
+      });
+    })
+    .catch(err => {
+      console.error("Error fetching orders:", err);
+      res.status(500).send("Internal Server Error");
+    });
+};
+
+exports.postDeleteOrder = (req, res, next) => {
+  const orderId = req.params.id;
+
+  Order.findByIdAndDelete(orderId)
+    .then(order => {
+      if (!order) {
+        req.flash('errorOrder', 'Order not found');
+        return res.redirect('/admin/order');
+      }
+      req.flash('successOrder', 'Order deleted successfully');
+      res.redirect('/admin/order');
+    })
+    .catch(err => {
+      console.error("Error deleting order:", err);
+      req.flash('errorOrder', 'Internal Server Error');
+      res.redirect('/admin/order');
+    });
+};
