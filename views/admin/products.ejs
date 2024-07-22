@@ -1,45 +1,72 @@
 <%- include('../includes/head.ejs') %>
-    <link rel="stylesheet" href="/css/product.css">
-    </head>
+<link rel="stylesheet" href="/css/product.css">
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+<!-- DataTables Responsive CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css">
+</head>
 
-    <body>
-        <%- include('../includes/navigation.ejs') %>
+<body>
+    <%- include('../includes/navigation.ejs') %>
 
-            <main>
-                <% if (prods.length > 0) { %>
-                    <div class="grid">
-                        <% for (let product of prods) { %>
-                            <article class="card product-item">
-                                <header class="card__header">
-                                    <h1 class="product__title">
-                                        <%= product.title %>
-                                    </h1>
-                                </header>
-                                <div class="card__image">
-                                    <img src="/<%= product.imageUrl %>" alt="<%= product.title %>">
-                                </div>
-                                <div class="card__content">
-                                    <h2 class="product__price">$
-                                        <%= product.price %>
-                                    </h2>
-                                    <p class="product__description">
-                                        <%= product.description %>
-                                    </p>
-                                </div>
-                                <div class="card__actions">
-                                    <a href="/admin/edit-product/<%= product._id %>?edit=true" class="btn">Edit</a>
-                                    <form action="/admin/delete-product" method="POST">
-                                        <input type="hidden" value="<%= product._id %>" name="productId">
-                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                                        <button class="btn" type="submit">Delete</button>
-                                    </form>
+    <main>
+        <form action="/admin/products" method="GET" class="search-form">
+            <input type="text" name="search" placeholder="Search by title" value="<%= searchQuery %>">
+            <button type="submit">Search</button>
+        </form>
+        
+        <% if (prods.length > 0) { %>
+            <table id="productTable" class="display responsive product-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Title</th>
+                        <th>Image</th>
+                        <th>Price</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% prods.forEach((product, index) => { %>
+                        <tr>
+                            <td><%= index + 1 %></td>
+                            <td><%= product.title %></td>
+                            <td><img src="/<%= product.imageUrl %>" alt="<%= product.title %>" class="responsive-img"></td>
+                            <td>$<%= product.price %></td>
+                            <td><%= product.description %></td>
+                            <td>
+                                <a href="/admin/edit-product/<%= product._id %>?edit=true" class="btn">Edit</a>
+                                <form action="/admin/delete-product" method="POST" class="inline-form">
+                                    <input type="hidden" value="<%= product._id %>" name="productId">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <button class="btn" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        <% } else { %>
+            <h1>No Products Found!</h1>
+        <% } %>
+    </main>
 
-                                </div>
-                            </article>
-                            <% } %>
-                    </div>
-                    <% } else { %>
-                        <h1>No Products Found!</h1>
-                        <% } %>
-            </main>
-            <%- include('../includes/end.ejs') %>
+    <%- include('../includes/end.ejs') %>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+    <!-- DataTables Responsive JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#productTable').DataTable({
+                responsive: true
+            });
+        });
+    </script>
+</body>
+</html>

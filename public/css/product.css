@@ -25,3 +25,27 @@
 .product__description {
     text-align: center;
 }
+
+/* Style for responsive images */
+.responsive-img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #ddd; /* Light grey border */
+    border-radius: 4px; /* Rounded corners */
+}
+
+/* Ensure the table and images fit well in the responsive design */
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.product-table th, .product-table td {
+    padding: 8px;
+    text-align: left;
+}
+
+.product-table img {
+    max-width: 100px; /* Limit image size */
+    height: auto;
+}

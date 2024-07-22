@@ -171,6 +171,30 @@ exports.postEditProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
+  const searchQuery = req.query.search || "";
+  const filter = searchQuery
+    ? { title: new RegExp(searchQuery, "i"), userId: req.user._id }
+    : { userId: req.user._id };
+
+  Product.find(filter)
+    .then((products) => {
+      res.render("admin/products", {
+        prods: products,
+        pageTitle: "Admin Products",
+        path: "/admin/products",
+        searchQuery: searchQuery,
+      });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).render("admin/products", {
+        pageTitle: "Admin Products",
+        path: "/admin/products",
+        prods: [],
+        errorMessage: "Fetching products failed, please try again later.",
+        searchQuery: searchQuery,
+      });
+    });
   Product.find({ userId: req.user._id })
     .then((products) => {
       res.render("admin/products", {
@@ -189,6 +213,7 @@ exports.getProducts = (req, res, next) => {
       });
     });
 };
+
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
