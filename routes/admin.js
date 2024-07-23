@@ -64,4 +64,7 @@ router.post('/deleteUser/:id',isAuth, adminController.postDeleteUser);
 router.get("/order", adminController.getOrder);
 router.post('/deleteOrder/:id',isAuth, adminController.postDeleteOrder);
 
+//Change Status
+router.post('/products/:id',isAuth, adminController.postProductUpdateStatus);
+
 module.exports = router;

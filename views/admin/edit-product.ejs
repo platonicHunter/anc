@@ -68,6 +68,16 @@
                     value="<% if (editing || hasError) { %><%= product.price %><% } %>">
             </div>
             <div class="form-control">
+                <label for="quantity">Quantity</label>
+                <input 
+                    class="<%= validationErrors.find(e => e.param === 'quantity') ? 'invalid' : '' %>"
+                    type="number" 
+                    name="quantity" 
+                    id="quantity"  
+                    value="<% if (editing || hasError) { %><%= product.quantity %><% } %>">
+            </div>
+
+            <div class="form-control">
                 <label for="description">Description</label>
                 <textarea 
                     class="<%= validationErrors.find(e => e.param === 'description') ? 'invalid' : '' %>"
@@ -76,6 +86,7 @@
                     rows="5"><% if (editing || hasError) { %><%= product.description %><% } %></textarea>
             </div>
             <% if (editing) { %>
+                <input type="hidden" name="status" value="<%= product.status %>">
                 <input type="hidden" value="<%= product._id %>" name="productId">
             <% } %>
 

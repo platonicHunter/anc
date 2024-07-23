@@ -22,6 +22,7 @@ exports.postAddProduct = (req, res, next) => {
   const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
+  const quantity = req.body.quantity;
   const errors = validationResult(req);
 
   if (!image) {
@@ -30,7 +31,7 @@ exports.postAddProduct = (req, res, next) => {
       path: "/admin/edit-product",
       editing: false,
       hasError: true,
-      product: { title, price, description },
+      product: { title, price, description, quantity },
       errorMessage: "Attach File not an Image",
       validationErrors: [],
     });
@@ -42,7 +43,7 @@ exports.postAddProduct = (req, res, next) => {
       path: "/admin/edit-product",
       editing: false,
       hasError: true,
-      product: { title, imageUrl, price, description },
+      product: { title, imageUrl, price, description, quantity },
       errorMessage: errors.array()[0].msg,
       validationErrors: errors.array(),
     });
@@ -54,11 +55,13 @@ exports.postAddProduct = (req, res, next) => {
     price: price,
     description: description,
     imageUrl: imageUrl,
+    quantity: quantity,
     userId: req.user,
   });
   product
     .save()
     .then((result) => {
+      req.flash("successProduct", "Product Created successfully");
       console.log("Created Product");
       res.redirect("/admin/products");
     })
@@ -111,6 +114,8 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const image = req.file;
   const updatedDesc = req.body.description;
+  const updatedQuantity = req.body.quantity;
+  const updatedStatus = req.body.status;
 
   const errors = validationResult(req);
 
@@ -125,6 +130,8 @@ exports.postEditProduct = (req, res, next) => {
         imageUrl: updatedImageUrl,
         price: updatedPrice,
         description: updatedDesc,
+        quantity: updatedQuantity,
+        status: updatedStatus,
         _id: prodId,
       },
       errorMessage: errors.array()[0].msg,
@@ -140,6 +147,8 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
+      product.quantity = updatedQuantity;
+      product.status = updatedStatus;
       if (image) {
         fileHelper.deleteFile(product.imageUrl); //delete image on folder
         product.imageUrl = image.path;
@@ -147,6 +156,7 @@ exports.postEditProduct = (req, res, next) => {
       return product.save();
     })
     .then((result) => {
+      req.flash("successProduct", "Product updated successfully");
       console.log("UPDATED PRODUCT!");
       res.redirect("/admin/products");
     })
@@ -162,6 +172,8 @@ exports.postEditProduct = (req, res, next) => {
           imageUrl: updatedImageUrl,
           price: updatedPrice,
           description: updatedDesc,
+          quantity: updatedQuantity,
+          status: updatedStatus,
           _id: prodId,
         },
         errorMessage: "Database operation failed, please try again.",
@@ -169,7 +181,11 @@ exports.postEditProduct = (req, res, next) => {
       });
     });
 };
+
+
 exports.getProducts = (req, res, next) => {
+  const errorMessage = req.flash("errorProduct")[0] || null;
+  const successMessage = req.flash("successProduct")[0] || null;
   const searchQuery = req.query.search || "";
   const filter = searchQuery
     ? { title: new RegExp(searchQuery, "i"), userId: req.user._id }
@@ -182,6 +198,8 @@ exports.getProducts = (req, res, next) => {
         pageTitle: "Admin Products",
         path: "/admin/products",
         searchQuery: searchQuery,
+        errorMessage: errorMessage,
+        successMessage: successMessage,
       });
     })
     .catch((err) => {
@@ -195,7 +213,6 @@ exports.getProducts = (req, res, next) => {
       });
     });
 };
-
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
@@ -224,15 +241,15 @@ exports.postDeleteProduct = (req, res, next) => {
 exports.getUserAccount = (req, res, next) => {
   const errorMessage = req.flash("error")[0] || null;
   const successMessage = req.flash("success")[0] || null;
-  
+
   User.find()
-    .then(users => {
-      const safeUsers = users.map(user => ({
+    .then((users) => {
+      const safeUsers = users.map((user) => ({
         _id: user._id,
         email: user.email,
         password: user.password,
         role: user.role,
-        status: user.status
+        status: user.status,
       }));
 
       res.render("admin/userAccount", {
@@ -240,10 +257,10 @@ exports.getUserAccount = (req, res, next) => {
         pageTitle: "User Account",
         path: "/admin/userAccount",
         errorMessage: errorMessage,
-        successMessage: successMessage
+        successMessage: successMessage,
       });
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error fetching users:", err);
       res.status(500).send("Internal Server Error");
     });
@@ -254,24 +271,24 @@ exports.postUpdateStatus = (req, res, next) => {
   const newStatus = req.body.status;
 
   console.log(`User ID: ${userId}, New Status: ${newStatus}`);
-  if (!['active', 'inactive', 'pending'].includes(newStatus)) {
-    req.flash('error', 'Invalid status');
-    return res.redirect('/admin/userAccount');
+  if (!["active", "inactive", "pending"].includes(newStatus)) {
+    req.flash("error", "Invalid status");
+    return res.redirect("/admin/userAccount");
   }
 
   User.findByIdAndUpdate(userId, { status: newStatus }, { new: true })
-    .then(user => {
+    .then((user) => {
       if (!user) {
-        req.flash('error', 'User not found');
-        return res.redirect('/admin/userAccount');
+        req.flash("error", "User not found");
+        return res.redirect("/admin/userAccount");
       }
-      req.flash('success', 'User status updated successfully');
-      res.redirect('/admin/userAccount');
+      req.flash("success", "User status updated successfully");
+      res.redirect("/admin/userAccount");
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error updating status:", err);
-      req.flash('error', 'Internal Server Error');
-      res.redirect('/admin/userAccount');
+      req.flash("error", "Internal Server Error");
+      res.redirect("/admin/userAccount");
     });
 };
 
@@ -279,18 +296,18 @@ exports.postDeleteUser = (req, res, next) => {
   const userId = req.params.id;
 
   User.findByIdAndDelete(userId)
-    .then(user => {
+    .then((user) => {
       if (!user) {
-        req.flash('error', 'User not found');
-        return res.redirect('/admin/userAccount');
+        req.flash("error", "User not found");
+        return res.redirect("/admin/userAccount");
       }
-      req.flash('success', 'User deleted successfully');
-      res.redirect('/admin/userAccount');
+      req.flash("success", "User deleted successfully");
+      res.redirect("/admin/userAccount");
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error deleting user:", err);
-      req.flash('error', 'Internal Server Error');
-      res.redirect('/admin/userAccount');
+      req.flash("error", "Internal Server Error");
+      res.redirect("/admin/userAccount");
     });
 };
 
@@ -299,16 +316,16 @@ exports.getOrder = (req, res, next) => {
   const successMessage = req.flash("successOrder")[0] || null;
 
   Order.find()
-    .then(orders => {
+    .then((orders) => {
       // Calculate total price for each order
-      orders = orders.map(order => {
+      orders = orders.map((order) => {
         let totalPrice = 0;
-        order.products.forEach(prod => {
+        order.products.forEach((prod) => {
           totalPrice += prod.quantity * prod.product.price;
         });
         return {
           ...order._doc,
-          totalPrice
+          totalPrice,
         };
       });
 
@@ -317,10 +334,10 @@ exports.getOrder = (req, res, next) => {
         pageTitle: "User Order",
         path: "/admin/order",
         errorMessage: errorMessage,
-        successMessage: successMessage
+        successMessage: successMessage,
       });
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error fetching orders:", err);
       res.status(500).send("Internal Server Error");
     });
@@ -330,17 +347,44 @@ exports.postDeleteOrder = (req, res, next) => {
   const orderId = req.params.id;
 
   Order.findByIdAndDelete(orderId)
-    .then(order => {
+    .then((order) => {
       if (!order) {
-        req.flash('errorOrder', 'Order not found');
-        return res.redirect('/admin/order');
+        req.flash("errorOrder", "Order not found");
+        return res.redirect("/admin/order");
       }
-      req.flash('successOrder', 'Order deleted successfully');
-      res.redirect('/admin/order');
+      req.flash("successOrder", "Order deleted successfully");
+      res.redirect("/admin/order");
     })
-    .catch(err => {
+    .catch((err) => {
       console.error("Error deleting order:", err);
-      req.flash('errorOrder', 'Internal Server Error');
-      res.redirect('/admin/order');
+      req.flash("errorOrder", "Internal Server Error");
+      res.redirect("/admin/order");
+    });
+};
+
+
+
+exports.postProductUpdateStatus = (req, res, next) => {
+  const productId = req.params.id;
+  
+  Product.findById(productId)
+    .then((product) => {
+      if (!product) {
+        req.flash("errorProduct", "Product not found");
+        return res.redirect("/admin/products");
+      }
+      
+      product.status = product.status === 1 ? 0 : 1;
+      
+      return product.save();
+    })
+    .then(() => {
+      req.flash("successProduct", "Product status updated successfully");
+      res.redirect("/admin/products");
+    })
+    .catch((err) => {
+      console.error("Error updating status:", err);
+      req.flash("errorProduct", "Internal Server Error");
+      res.redirect("/admin/products");
     });
 };
