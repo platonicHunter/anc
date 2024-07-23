@@ -9,15 +9,11 @@
 <body>
     <%- include('../includes/navigation.ejs') %>
 
-    <main>
-        <form action="/admin/products" method="GET" class="search-form">
-            <input type="text" name="search" placeholder="Search by title" value="<%= searchQuery %>">
-            <button type="submit">Search</button>
-        </form>
-        
+    <h1 class="mb-4 centered" style="color: blueviolet;text-decoration:underline;">Products List</h1>
+    <main>      
         <% if (prods.length > 0) { %>
             <table id="productTable" class="display responsive product-table">
-                <thead>
+                <thead class="table table-dark">
                     <tr>
                         <th>No</th>
                         <th>Title</th>

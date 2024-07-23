@@ -169,7 +169,6 @@ exports.postEditProduct = (req, res, next) => {
       });
     });
 };
-
 exports.getProducts = (req, res, next) => {
   const searchQuery = req.query.search || "";
   const filter = searchQuery
@@ -193,23 +192,6 @@ exports.getProducts = (req, res, next) => {
         prods: [],
         errorMessage: "Fetching products failed, please try again later.",
         searchQuery: searchQuery,
-      });
-    });
-  Product.find({ userId: req.user._id })
-    .then((products) => {
-      res.render("admin/products", {
-        prods: products,
-        pageTitle: "Admin Products",
-        path: "/admin/products",
-      });
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).render("admin/products", {
-        pageTitle: "Admin Products",
-        path: "/admin/products",
-        prods: [],
-        errorMessage: "Fetching products failed, please try again later.",
       });
     });
 };
