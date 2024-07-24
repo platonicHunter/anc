@@ -10,7 +10,7 @@ const { userInfo } = require("os");
 const ITEMS_PER_PAGE = 3;
 
 exports.getProducts = (req, res, next) => {
-  Product.find()
+  Product.find({ _id: prodId, status: 1 })
     .then((products) => {
       console.log(products);
       res.render("shop/product-list", {
@@ -46,13 +46,14 @@ exports.getProduct = (req, res, next) => {
 exports.getIndex = (req, res, next) => {
   const errorMessage = req.flash("error")[0] || null;
   const page = +req.query.page || 1;
+  const ITEMS_PER_PAGE = 10; // Define the number of items per page
   let totalItems;
 
-  Product.find()
+  Product.find({ status: 1 ,quantity: { $gt: 0 } }) // Corrected filter condition here
     .countDocuments()
     .then((numProducts) => {
       totalItems = numProducts;
-      return Product.find()
+      return Product.find({ status: 1 ,quantity: { $gt: 0 }}) // Corrected filter condition here
         .skip((page - 1) * ITEMS_PER_PAGE)
         .limit(ITEMS_PER_PAGE);
     })
@@ -71,9 +72,10 @@ exports.getIndex = (req, res, next) => {
       });
     })
     .catch((err) => {
+      console.error(err);
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next();
+      return next(error);
     });
 };
 
@@ -102,6 +104,7 @@ exports.getCart = (req, res, next) => {
       return next();
     });
 };
+
 exports.postCart = (req, res, next) => {
   const userId = req.user._id;
   const prodId = req.body.productId;
@@ -119,6 +122,10 @@ exports.postCart = (req, res, next) => {
       if (userId.toString() === product.userId.toString()) {
         req.flash('error', `Can't order your own product!!`);
         return res.redirect('/')
+      }
+      if (product.quantity < quantity) {
+        req.flash('error', `Only ${product.quantity} of this product is available.`);
+        return res.redirect('/');
       }
       return req.user.addToCart(product, quantity).then((result) => {
         console.log(result);
@@ -140,9 +147,9 @@ exports.postCartDeleteProduct = (req, res, next) => {
       res.redirect("/cart");
     })
     .catch((err) => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next();
+      console.error(err);
+      req.flash('error', 'An error occurred while removing the product from the cart.');
+      res.redirect('/cart');
     });
 };
 
