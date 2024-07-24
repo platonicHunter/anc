@@ -108,13 +108,14 @@ exports.getEditProduct = (req, res, next) => {
     });
 };
 
+
 exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
-  const updatedPrice = req.body.price;
+  const updatedPrice = parseFloat(req.body.price); // Ensure price is a number
   const image = req.file;
   const updatedDesc = req.body.description;
-  const updatedQuantity = req.body.quantity;
+  const updatedQuantity = parseInt(req.body.quantity, 10); // Ensure quantity is an integer
   const updatedStatus = req.body.status;
 
   const errors = validationResult(req);
@@ -127,7 +128,7 @@ exports.postEditProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
+        imageUrl: image ? image.path : req.body.oldImageUrl, // Preserve old image URL if no new image
         price: updatedPrice,
         description: updatedDesc,
         quantity: updatedQuantity,
@@ -139,8 +140,32 @@ exports.postEditProduct = (req, res, next) => {
     });
   }
 
+  // Check if price and quantity are not less than 0
+  if (updatedPrice < 0 || updatedQuantity < 0) {
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/edit-product",
+      editing: true,
+      hasError: true,
+      product: {
+        title: updatedTitle,
+        imageUrl: image ? image.path : req.body.oldImageUrl,
+        price: updatedPrice,
+        description: updatedDesc,
+        quantity: updatedQuantity,
+        status: updatedStatus,
+        _id: prodId,
+      },
+      errorMessage: "Price and Quantity must be greater than or equal to 0",
+      validationErrors: [],
+    });
+  }
+
   Product.findById(prodId)
     .then((product) => {
+      if (!product) {
+        return res.redirect("/");
+      }
       if (product.userId.toString() !== req.user._id.toString()) {
         return res.redirect("/");
       }
@@ -150,18 +175,18 @@ exports.postEditProduct = (req, res, next) => {
       product.quantity = updatedQuantity;
       product.status = updatedStatus;
       if (image) {
-        fileHelper.deleteFile(product.imageUrl); //delete image on folder
+        fileHelper.deleteFile(product.imageUrl); // Delete old image from folder
         product.imageUrl = image.path;
       }
       return product.save();
     })
-    .then((result) => {
+    .then(() => {
       req.flash("successProduct", "Product updated successfully");
       console.log("UPDATED PRODUCT!");
       res.redirect("/admin/products");
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err); // Use console.error for logging errors
       res.status(500).render("admin/edit-product", {
         pageTitle: "Edit Product",
         path: "/admin/edit-product",
@@ -169,7 +194,7 @@ exports.postEditProduct = (req, res, next) => {
         hasError: true,
         product: {
           title: updatedTitle,
-          imageUrl: updatedImageUrl,
+          imageUrl: image ? image.path : req.body.oldImageUrl,
           price: updatedPrice,
           description: updatedDesc,
           quantity: updatedQuantity,

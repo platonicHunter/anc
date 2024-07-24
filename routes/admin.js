@@ -18,7 +18,12 @@ router.post(
       .isLength({ min: 5 })
       .withMessage("Title must be at least 5 characters long.")
       .trim(),
-    body("price").isFloat().withMessage("Price must be a number."),
+    body("price")
+      .isFloat({ min: 0 })
+      .withMessage("Price must be a number and not less than 0."),
+    body("quantity")
+      .isInt({ min: 0 })
+      .withMessage("Quantity must be an number and cannot be less than 0."),
     body("description")
       .isString()
       .withMessage("Description must be string")
@@ -31,6 +36,7 @@ router.post(
 
 router.get("/edit-product/:productId", isAuth, adminController.getEditProduct);
 
+
 router.post(
   "/edit-product",
   [
@@ -40,7 +46,12 @@ router.post(
       .isLength({ min: 3 })
       .withMessage("Title must be at least 3 characters long.")
       .trim(),
-    body("price").isFloat().withMessage("Price must be a number."),
+    body("price")
+      .isFloat({ min: 0 })
+      .withMessage("Price must be a number and cannot be less than 0."),
+    body("quantity")
+      .isInt({ min: 0 })
+      .withMessage("Quantity must be an integer and cannot be less than 0."),
     body("description")
       .isLength({ min: 5, max: 400 })
       .withMessage("Description must be between 5 and 400 characters."),
@@ -51,20 +62,18 @@ router.post(
 
 router.post("/delete-product", isAuth, adminController.postDeleteProduct);
 
-
 //userAccount on Auth
 
-router.get('/userAccount', adminController.getUserAccount);
-router.post('/updateStatus/:id',isAuth, adminController.postUpdateStatus);
-router.post('/deleteUser/:id',isAuth, adminController.postDeleteUser);
+router.get("/userAccount", adminController.getUserAccount);
+router.post("/updateStatus/:id", isAuth, adminController.postUpdateStatus);
+router.post("/deleteUser/:id", isAuth, adminController.postDeleteUser);
 
 //Orders
 
-
 router.get("/order", adminController.getOrder);
-router.post('/deleteOrder/:id',isAuth, adminController.postDeleteOrder);
+router.post("/deleteOrder/:id", isAuth, adminController.postDeleteOrder);
 
 //Change Status
-router.post('/products/:id',isAuth, adminController.postProductUpdateStatus);
+router.post("/products/:id", isAuth, adminController.postProductUpdateStatus);
 
 module.exports = router;
