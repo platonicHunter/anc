@@ -1,0 +1,14 @@
+<%- include('../includes/head.ejs') %>
+    
+</head>
+
+<body>
+   <%- include('../includes/navigation.ejs') %>
+
+    <main>
+        <% if (successMessage) { %>
+            <div><%= successMessage %></div>
+        <% } %>
+            <div class="centered mb-4">Account activated successfully. You can now <a href="/login">log in</a>.</div>
+    </main>
+<%- include('../includes/end.ejs') %></form>

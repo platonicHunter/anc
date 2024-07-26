@@ -67,6 +67,9 @@ router.post(
   authController.postSignup
 );
 
+//activate Account
+router.get('/activate/:token', authController.getEmailActivateAccount);
+
 router.post("/logout", authController.postLogout);
 
 router.get("/reset", authController.getReset);

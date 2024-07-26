@@ -45,9 +45,7 @@
                                         <input type="hidden" name="_method" value="PUT">
                                         <select name="status" class="status-select">
                                             <option value="active" <%= user.status === 'active' ? 'selected' : '' %>>Active</option>
-                                            <option value="inactive" <%= user.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
-                                            <option value="pending" <%= user.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                                        </select>
+                                            <option value="suspend" <%= user.status === 'suspend' ? 'selected' : '' %>>Suspend</option>                                        </select>
                                         <% if (user._id.toString() !== userId) { %>
                                         <button type="submit" class="update-btn">Update</button>
                                         <% } else { %>

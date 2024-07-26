@@ -4,8 +4,8 @@ const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "aungnyeinchann416@gmail.com", // Replace with your Gmail address
-    pass: "zlxrdjqaixexupqz", // Replace with your Gmail password or app-specific password
+    user: "minlu0954@gmail.com", // Replace with your Gmail address
+    pass: "zuozyfwxycvuvauq", // Replace with your Gmail password or app-specific password
   },
 });
 
@@ -36,4 +36,31 @@ function sendResetEmail(email, resetToken) {
   });
 }
 
-module.exports = { sendResetEmail };
+
+function sendActivateEmail(email, resetToken) {
+  let mailOptions = {
+    from: '"Admin Kolar" <aminlu0954@gmail.com>',
+    to: email,
+    subject: "Activate Account",
+    text:
+      `You are receiving this because you (or someone else) have requested the activate for your account.\n\n` +
+      `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
+      `http://localhost:3000/activate/${resetToken}\n\n` +
+      `If you did not request this, please ignore this email and your account will Activate.\n`,
+  };
+
+  // Return a promise to handle success or failure
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log("Error sending email: ", error);
+        reject(error);
+      } else {
+        console.log("Email sent: " + info.response);
+        resolve(info);
+      }
+    });
+  });
+}
+
+module.exports = { sendResetEmail , sendActivateEmail};

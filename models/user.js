@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const Schema = mongoose.Schema;
 const Product=require('./product')
@@ -18,11 +19,13 @@ const userSchema = new Schema({
   },
   status:{
     type:String,
-    enum: ['active', 'inactive', 'pending'],
-    default:'pending'
+    enum: ['active', 'suspend'],
+    default:'suspend'
   },
   resetToken:String,
   resetTokenExpiration: Date,
+  activationToken: String,
+  activationExpires: Date,
   cart: {
     items: [
       {
@@ -96,5 +99,15 @@ userSchema.methods.clearCart = function() {
   this.cart = { items: [] };
   return this.save();
 };
+
+
+//activate Token
+userSchema.methods.generateActivationToken = function() {
+  const token = crypto.randomBytes(20).toString('hex');
+  this.activationToken = token;
+  this.activationExpires = Date.now() + 3600000; // 1 hour
+  return token;
+};
+
 
 module.exports = mongoose.model('User', userSchema);

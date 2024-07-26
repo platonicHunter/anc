@@ -296,7 +296,7 @@ exports.postUpdateStatus = (req, res, next) => {
   const newStatus = req.body.status;
 
   console.log(`User ID: ${userId}, New Status: ${newStatus}`);
-  if (!["active", "inactive", "pending"].includes(newStatus)) {
+  if (!["active", "suspend"].includes(newStatus)) {
     req.flash("error", "Invalid status");
     return res.redirect("/admin/userAccount");
   }

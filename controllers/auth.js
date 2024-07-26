@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const { check, validationResult } = require("express-validator");
 
 //mail
-const { sendResetEmail } = require("../models/sendMail");
+const { sendResetEmail, sendActivateEmail } = require('../models/sendMail');
 
 const User = require("../models/user");
 const user = require("../models/user");
@@ -28,10 +28,12 @@ exports.getLogin = (req, res, next) => {
 
 exports.getSignup = (req, res, next) => {
   const errorMessage = req.flash("errorSign")[0] || null;
+  const successMessage = req.flash("successSign")[0] || null;
   res.render("auth/signup", {
     path: "/signup",
     pageTitle: "Sign Up",
     errorMessage: errorMessage,
+    successMessage: successMessage,
     oldInput: { email: "", password: "", confirmPassword: "" },
     validationErrors: [],
   });
@@ -123,12 +125,14 @@ exports.postLogin = (req, res, next) => {
       return next(error);
     });
 };
+
+
 exports.postSignup = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
   const errors = validationResult(req);
-  console.log(errors.array());
+
   if (!errors.isEmpty()) {
     return res.status(422).render("auth/signup", {
       path: "/signup",
@@ -139,30 +143,67 @@ exports.postSignup = (req, res, next) => {
         password: password,
         confirmPassword: confirmPassword,
       },
-      //oldInput:req.body,
       validationErrors: errors.array(),
     });
   }
+
   return bcrypt
     .hash(password, 12)
-    .then((hashPassword) => {
+    .then(hashedPassword => {
       const user = new User({
         email: email,
-        password: hashPassword,
+        password: hashedPassword,
         cart: { items: [] },
       });
-      return user.save();
+      const activationToken = user.generateActivationToken();
+      return user.save().then(() => activationToken);
     })
-    .then((result) => {
-      req.flash("success", "Successfully!Email has Created");
-      res.redirect("./login");
+    .then((activationToken) => {
+      return sendActivateEmail(email, activationToken);
+    })
+    .then(() => {
+      req.flash("success", "Signup successful! Please check your email to activate your account.");
+      res.redirect("/login");
     })
     .catch((err) => {
       const error = new Error(err);
       error.httpStatusCode = 500;
-      return next();
+      return next(error);
     });
 };
+
+
+// Activate Account
+exports.getEmailActivateAccount = (req, res, next) => {
+  User.findOne({
+    activationToken: req.params.token,
+    activationExpires: { $gt: Date.now() }
+  })
+    .then(user => {
+      if (!user) {
+        return res.status(400).send('Activation token is invalid or has expired.');
+      }
+
+      user.status = 'active';
+      user.activationToken = undefined;
+      user.activationExpires = undefined;
+
+      return user.save();
+    })
+    .then(() => {    
+      const successMessage = req.flash('success');
+      res.render('auth/activateEmail', {
+        pageTitle: 'Account Activation',
+        path: `/activate/${req.params.token}`,
+      });
+    })
+    .catch(err => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      next(error);
+    });
+};
+
 
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
