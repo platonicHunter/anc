@@ -60,40 +60,49 @@ userSchema.methods.addToCart = function(product,quantity) {
     items: updatedCartItems
   };
   this.cart = updatedCart;
+  return this.save();
 
-  // Reduce the product's quantity
-  product.quantity -= quantity;
+  // // Reduce the product's quantity
+  // product.quantity -= quantity;
 
-  // Save both user cart and product
-  return Promise.all([this.save(), product.save()]);
+  // // Save both user cart and product
+  // return Promise.all([this.save(), product.save()]);
 };
 
 userSchema.methods.removeFromCart = function(productId) {
-  const cartItem = this.cart.items.find(item => {
-    return item.productId.toString() === productId.toString();
-  });
-
-  if (!cartItem) {
-    return Promise.reject(new Error('Product not found in cart.'));
-  }
-
   const updatedCartItems = this.cart.items.filter(item => {
     return item.productId.toString() !== productId.toString();
   });
-
   this.cart.items = updatedCartItems;
-
-  return Product.findById(productId)
-    .then(product => {
-      if (!product) {
-        return Promise.reject(new Error('Product not found.'));
-      }
-
-      product.quantity += cartItem.quantity;
-
-      return Promise.all([this.save(), product.save()]);
-    });
+  return this.save();
 };
+
+// userSchema.methods.removeFromCart = function(productId) {
+//   const cartItem = this.cart.items.find(item => {
+//     return item.productId.toString() === productId.toString();
+//   });
+
+//   if (!cartItem) {
+//     return Promise.reject(new Error('Product not found in cart.'));
+//   }
+
+//   const updatedCartItems = this.cart.items.filter(item => {
+//     return item.productId.toString() !== productId.toString();
+//   });
+
+//   this.cart.items = updatedCartItems;
+
+//   return Product.findById(productId)
+//     .then(product => {
+//       if (!product) {
+//         return Promise.reject(new Error('Product not found.'));
+//       }
+
+//       product.quantity += cartItem.quantity;
+
+//       return Promise.all([this.save(), product.save()]);
+//     });
+// };
 
 userSchema.methods.clearCart = function() {
   this.cart = { items: [] };

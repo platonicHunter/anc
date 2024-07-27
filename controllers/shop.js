@@ -123,10 +123,10 @@ exports.postCart = (req, res, next) => {
         req.flash('error', `Can't order your own product!!`);
         return res.redirect('/')
       }
-      if (product.quantity < quantity) {
-        req.flash('error', `Only ${product.quantity} of this product is available.`);
-        return res.redirect('/');
-      }
+      // if (product.quantity < quantity) {
+      //   req.flash('error', `Only ${product.quantity} of this product is available.`);
+      //   return res.redirect('/');
+      // }
       return req.user.addToCart(product, quantity).then((result) => {
         console.log(result);
         res.redirect("/cart");
@@ -153,13 +153,15 @@ exports.postCartDeleteProduct = (req, res, next) => {
     });
 };
 
+
+
 exports.postOrder = (req, res, next) => {
   req.user
     .populate("cart.items.productId")
     .execPopulate()
     .then((user) => {
       const products = user.cart.items.map((i) => {
-        return { quantity: i.quantity, product: { ...i.productId._doc } };
+        return { quantity: i.quantity , product: { ...i.productId._doc } };
       });
       const order = new Order({
         user: {
